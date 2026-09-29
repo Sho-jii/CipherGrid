@@ -1,0 +1,5 @@
+{
+  "name": "CipherGrid",
+  "type": "vue",
+  "integrations": { "capacitor": {} }
+}

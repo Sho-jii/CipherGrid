@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.idea/
+.vscode/
+*.log
+android/.gradle/
+android/local.properties
+android/app/build/
+android/build/
+android/app/*.keystore
+android/app/*.jks
+ios/App/Pods/
+public/tessdata/eng.traineddata.gz
+AGENTS.md
