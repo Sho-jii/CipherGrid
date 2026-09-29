@@ -1,7 +1,7 @@
 # CipherGrid
 
 <p align="center">
-  <img src="public/assets/ciphergrid-logo.png" alt="CipherGrid logo" width="150" />
+  <img src="public/assets/ciphergrid-readme-logo.png" alt="CipherGrid logo on a light bordered plaque" width="150" />
 </p>
 
 **CipherGrid: A Mobile OCR-Assisted Multi-Cipher Encryption, Batch Processing, and Cryptanalysis Application**

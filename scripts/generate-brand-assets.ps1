@@ -9,6 +9,7 @@ $ivory = [System.Drawing.ColorTranslator]::FromHtml('#F2F0E9')
 $dark = [System.Drawing.ColorTranslator]::FromHtml('#10141B')
 $blue = [System.Drawing.ColorTranslator]::FromHtml('#2347FF')
 $orange = [System.Drawing.ColorTranslator]::FromHtml('#FF5A1F')
+$border = [System.Drawing.ColorTranslator]::FromHtml('#7E8793')
 
 if (-not (Test-Path -LiteralPath $sourcePath)) {
     throw "CipherGrid source logo was not found at $sourcePath"
@@ -104,6 +105,40 @@ function Write-Splash([System.Drawing.Image]$source, [int]$width, [int]$height, 
     }
 }
 
+function Write-ReadmeLogo([System.Drawing.Image]$source, [string]$path) {
+    $canvasSize = 512
+    $plaqueSize = 384
+    $offset = 18
+    $left = [int](($canvasSize - $plaqueSize) / 2)
+    $top = [int](($canvasSize - $plaqueSize) / 2)
+    $bitmap = New-Canvas $canvasSize $canvasSize
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    try {
+        Set-Quality $graphics
+        $graphics.Clear([System.Drawing.Color]::Transparent)
+        $blueBrush = [System.Drawing.SolidBrush]::new($blue)
+        $orangeBrush = [System.Drawing.SolidBrush]::new($orange)
+        $ivoryBrush = [System.Drawing.SolidBrush]::new($ivory)
+        $borderPen = [System.Drawing.Pen]::new($border, 4)
+        try {
+            $graphics.FillRectangle($blueBrush, $left + $offset, $top + $offset, $plaqueSize, $plaqueSize)
+            $graphics.FillRectangle($orangeBrush, $left - $offset, $top - $offset, $plaqueSize, $plaqueSize)
+            $graphics.FillRectangle($ivoryBrush, $left, $top, $plaqueSize, $plaqueSize)
+            $graphics.DrawRectangle($borderPen, $left, $top, $plaqueSize - 1, $plaqueSize - 1)
+            $graphics.DrawImage($source, [System.Drawing.Rectangle]::new($left, $top, $plaqueSize, $plaqueSize))
+        } finally {
+            $blueBrush.Dispose()
+            $orangeBrush.Dispose()
+            $ivoryBrush.Dispose()
+            $borderPen.Dispose()
+        }
+        Save-Png $bitmap $path
+    } finally {
+        $graphics.Dispose()
+        $bitmap.Dispose()
+    }
+}
+
 $source = [System.Drawing.Image]::FromFile($sourcePath)
 try {
     $densitySizes = [ordered]@{
@@ -124,6 +159,7 @@ try {
     }
 
     Write-Launcher $source 1024 (Join-Path $repositoryRoot 'public\assets\ciphergrid-app-icon.png') $false
+    Write-ReadmeLogo $source (Join-Path $repositoryRoot 'public\assets\ciphergrid-readme-logo.png')
 
     Get-ChildItem -Path $androidResources -Recurse -Filter 'splash.png' | ForEach-Object {
         $existing = [System.Drawing.Image]::FromFile($_.FullName)
@@ -139,4 +175,4 @@ try {
     $source.Dispose()
 }
 
-Write-Host 'CipherGrid Android launcher, adaptive foreground, PWA icon, and splash assets generated.'
+Write-Host 'CipherGrid Android launcher, adaptive foreground, README logo, PWA icon, and splash assets generated.'
