@@ -2,7 +2,16 @@ import { defineStore } from 'pinia';
 import type { CipherMode, CipherOptions, CipherResult } from '@/models/cipher';
 import { runCipher } from '@/services/ciphers/registry';
 
-const defaultOptions: CipherOptions = { kind: 'caesar', shift: 3 };
+export function createDefaultCipherOptions(kind: CipherOptions['kind']): CipherOptions {
+  const defaults: Record<CipherOptions['kind'], CipherOptions> = {
+    caesar: { kind: 'caesar', shift: 3 }, vigenere: { kind: 'vigenere', key: 'LEMON' }, atbash: { kind: 'atbash' },
+    affine: { kind: 'affine', a: 5, b: 8 }, 'rail-fence': { kind: 'rail-fence', rails: 3 }, columnar: { kind: 'columnar', key: 'ZEBRAS' },
+    playfair: { kind: 'playfair', key: 'PLAYFAIR EXAMPLE' }, hill: { kind: 'hill', key: 'GYBNQKURP', size: 3 }, autokey: { kind: 'autokey', key: 'QUEENLY' },
+  };
+  return structuredClone(defaults[kind]);
+}
+
+const defaultOptions: CipherOptions = createDefaultCipherOptions('caesar');
 
 export const useWorkspaceStore = defineStore('workspace', {
   state: () => ({
@@ -14,12 +23,15 @@ export const useWorkspaceStore = defineStore('workspace', {
   actions: {
     setInput(value: string) { this.input = value; sessionStorage.setItem('cg-draft-input', value); },
     select(kind: CipherOptions['kind']) {
-      const defaults: Record<CipherOptions['kind'], CipherOptions> = {
-        caesar: { kind: 'caesar', shift: 3 }, vigenere: { kind: 'vigenere', key: 'LEMON' }, atbash: { kind: 'atbash' },
-        affine: { kind: 'affine', a: 5, b: 8 }, 'rail-fence': { kind: 'rail-fence', rails: 3 }, columnar: { kind: 'columnar', key: 'ZEBRAS' },
-        playfair: { kind: 'playfair', key: 'PLAYFAIR EXAMPLE' }, hill: { kind: 'hill', key: 'GYBNQKURP', size: 3 }, autokey: { kind: 'autokey', key: 'QUEENLY' },
-      };
-      this.options = defaults[kind]; this.result = null; this.output = ''; this.error = '';
+      this.options = createDefaultCipherOptions(kind); this.result = null; this.output = ''; this.error = '';
+    },
+    loadSaved(input: string, output: string, mode: CipherMode, options: CipherOptions) {
+      this.setInput(input);
+      this.output = output;
+      this.mode = mode;
+      this.options = structuredClone(options);
+      this.result = null;
+      this.error = '';
     },
     process() {
       this.error = '';

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { IonContent, IonHeader, IonPage, IonIcon } from '@ionic/vue';
+import { IonContent, IonHeader, IonPage, IonIcon, useIonRouter } from '@ionic/vue';
 import { RouterLink } from 'vue-router';
 import { gridOutline, homeOutline, scanOutline, analyticsOutline, libraryOutline, settingsOutline, informationCircleOutline, arrowBackOutline, compassOutline } from 'ionicons/icons';
 import { useRoute } from 'vue-router';
 import ThemeToggle from '@/components/common/ThemeToggle.vue';
 
-withDefaults(defineProps<{ title: string; eyebrow?: string; back?: boolean; backTo?: string; backLabel?: string; wide?: boolean }>(), {
+const props = withDefaults(defineProps<{ title: string; eyebrow?: string; back?: boolean; backTo?: string; backLabel?: string; wide?: boolean }>(), {
   eyebrow: 'CIPHERGRID / FIELD TERMINAL',
   back: false,
   backTo: '/home',
@@ -13,11 +13,23 @@ withDefaults(defineProps<{ title: string; eyebrow?: string; back?: boolean; back
   wide: false,
 });
 const route = useRoute();
+const ionRouter = useIonRouter();
 const navigation = [
   { path: '/home', label: 'Home', icon: homeOutline }, { path: '/workspace', label: 'Workspace', icon: gridOutline },
   { path: '/scan', label: 'Scan', icon: scanOutline }, { path: '/analyze', label: 'Analyze', icon: analyticsOutline },
   { path: '/library', label: 'Library', icon: libraryOutline },
 ];
+function goBack() {
+  if (ionRouter.canGoBack()) ionRouter.back();
+  else ionRouter.navigate(props.backTo, 'back', 'replace');
+}
+function navigatePrimary(path: string) {
+  if (route.path === path) return;
+  const currentIndex = navigation.findIndex((item) => item.path === route.path);
+  const targetIndex = navigation.findIndex((item) => item.path === path);
+  const direction = currentIndex >= 0 && targetIndex < currentIndex ? 'back' : 'forward';
+  ionRouter.navigate(path, direction, 'push');
+}
 
 </script>
 
@@ -32,7 +44,7 @@ const navigation = [
           <div class="header-title"><span class="eyebrow">{{ eyebrow }}</span><strong>{{ title }}</strong></div>
         </div>
         <nav aria-label="Utility navigation">
-          <RouterLink v-if="back" :to="backTo" class="back-control" :aria-label="`Go to ${backLabel}`"><IonIcon :icon="arrowBackOutline" /><span>{{ backLabel }}</span></RouterLink>
+          <button v-if="back" type="button" class="back-control" :aria-label="`Go to ${backLabel}`" @click="goBack"><IonIcon :icon="arrowBackOutline" /><span>{{ backLabel }}</span></button>
           <RouterLink v-if="route.path === '/home'" to="/onboarding" class="header-action" aria-label="Open onboarding guide"><IonIcon :icon="compassOutline" /><span>Intro</span></RouterLink>
           <ThemeToggle />
           <RouterLink to="/settings" class="square-icon header-settings" aria-label="Settings"><IonIcon :icon="settingsOutline" /></RouterLink>
@@ -46,9 +58,9 @@ const navigation = [
       </main>
     </IonContent>
     <nav v-if="!back" class="bottom-nav" aria-label="Primary navigation">
-      <RouterLink v-for="item in navigation" :key="item.path" :to="item.path" :class="{ active: route.path === item.path }">
+      <a v-for="item in navigation" :key="item.path" :href="item.path" :class="{ active: route.path === item.path }" @click.prevent="navigatePrimary(item.path)">
         <IonIcon :icon="item.icon" /><span>{{ item.label }}</span>
-      </RouterLink>
+      </a>
     </nav>
   </IonPage>
 </template>

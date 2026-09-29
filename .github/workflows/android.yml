@@ -86,12 +86,12 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist-apk
-          cp android/app/build/outputs/apk/debug/app-debug.apk "dist-apk/CipherGrid-v${APP_VERSION}-debug.apk"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist-apk/CipherGrid-v${APP_VERSION}.apk"
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v7.0.1
         with:
           name: CipherGrid-Android-Debug
-          path: dist-apk/CipherGrid-v${{ steps.app_version.outputs.version }}-debug.apk
+          path: dist-apk/CipherGrid-v${{ steps.app_version.outputs.version }}.apk
           if-no-files-found: error
           retention-days: 14

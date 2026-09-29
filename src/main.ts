@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import { IonicVue } from '@ionic/vue';
+import { IonicVue, iosTransitionAnimation } from '@ionic/vue';
 import { createPinia } from 'pinia';
 import App from './App.vue';
 import router from './router';
@@ -13,5 +13,6 @@ import { registerSW } from 'virtual:pwa-register';
 
 registerSW({ immediate: true });
 
-const app = createApp(App).use(IonicVue).use(createPinia()).use(router);
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const app = createApp(App).use(IonicVue, { animated: !reduceMotion, navAnimation: iosTransitionAnimation }).use(createPinia()).use(router);
 router.isReady().then(() => app.mount('#app'));

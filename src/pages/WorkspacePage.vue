@@ -11,6 +11,7 @@ import { cipherRegistry, cipherById } from '@/services/ciphers/registry';
 import { useWorkspaceStore } from '@/stores/workspace';
 import { useSettingsStore } from '@/stores/settings';
 import { putRecord } from '@/services/storage/database';
+import { notifyHistoryChanged, type HistoryRecord } from '@/models/history';
 const workspace = useWorkspaceStore(); const settings = useSettingsStore(); const router = useRouter();
 const notice = ref(''); const historyDisabled = ref(false); const selected = computed(() => cipherById(workspace.options.kind));
 function run() { workspace.process(); if (!workspace.error) void Haptics.impact({ style: ImpactStyle.Light }).catch(() => undefined); }
@@ -18,7 +19,13 @@ async function copy() { await Clipboard.write({ string: workspace.output }); his
 async function share() { await Share.share({ title: `${selected.value.name} output`, text: workspace.output, dialogTitle: 'Share CipherGrid output' }); }
 async function save() {
   if (!settings.historyEnabled) { historyDisabled.value = true; notice.value = 'History is off. Enable it in Settings before saving.'; return; }
-  await putRecord('history', { id: crypto.randomUUID(), algorithm: selected.value.name, mode: workspace.mode, input: workspace.input, output: workspace.output, createdAt: new Date().toISOString() });
+  const record: HistoryRecord = {
+    id: crypto.randomUUID(), algorithm: selected.value.name, algorithmId: selected.value.id,
+    mode: workspace.mode, input: workspace.input, output: workspace.output,
+    options: structuredClone(workspace.options), createdAt: new Date().toISOString(),
+  };
+  await putRecord('history', record);
+  notifyHistoryChanged();
   historyDisabled.value = false;
   notice.value = 'Saved locally.';
 }
