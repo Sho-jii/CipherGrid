@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { createPinia, setActivePinia } from 'pinia';
-import { createDefaultCipherOptions, useWorkspaceStore } from '@/stores/workspace';
+import { reactive } from 'vue';
+import { createDefaultCipherOptions, snapshotCipherOptions, useWorkspaceStore } from '@/stores/workspace';
 
 describe('workspace saved-result loading', () => {
   beforeEach(() => {
@@ -13,6 +14,14 @@ describe('workspace saved-result loading', () => {
     const second = createDefaultCipherOptions('caesar');
     expect(first).toEqual({ kind: 'caesar', shift: 3 });
     expect(first).not.toBe(second);
+  });
+
+  it('creates a serializable snapshot from reactive options before persistence', () => {
+    const options = reactive({ kind: 'caesar' as const, shift: 9 });
+    const snapshot = snapshotCipherOptions(options);
+
+    expect(snapshot).toEqual({ kind: 'caesar', shift: 9 });
+    expect(snapshot).not.toBe(options);
   });
 
   it('restores saved input, output, mode, and algorithm options', () => {

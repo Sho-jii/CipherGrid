@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia';
+import { toRaw } from 'vue';
 import type { CipherMode, CipherOptions, CipherResult } from '@/models/cipher';
 import { runCipher } from '@/services/ciphers/registry';
+
+export function snapshotCipherOptions(options: CipherOptions): CipherOptions {
+  return structuredClone(toRaw(options));
+}
 
 export function createDefaultCipherOptions(kind: CipherOptions['kind']): CipherOptions {
   const defaults: Record<CipherOptions['kind'], CipherOptions> = {
@@ -29,7 +34,7 @@ export const useWorkspaceStore = defineStore('workspace', {
       this.setInput(input);
       this.output = output;
       this.mode = mode;
-      this.options = structuredClone(options);
+      this.options = snapshotCipherOptions(options);
       this.result = null;
       this.error = '';
     },

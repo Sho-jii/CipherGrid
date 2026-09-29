@@ -12,7 +12,12 @@ const input = ref(sessionStorage.getItem('cg-analyze-text') ?? ''); const tool =
 const candidates = ref<AnalysisCandidate[]>([]); const keyLength = ref(3); const manualKey = ref(''); const error = ref(''); const workspace = useWorkspaceStore(); const router = useRouter();
 const stats = computed(() => textStatistics(input.value)); const family = computed(() => suggestCipherFamily(input.value));
 const estimates = computed(() => estimateVigenereKeyLengths(input.value)); const kasiski = computed(() => kasiskiExamination(input.value));
+const maximumFrequency = computed(() => Math.max(0, ...stats.value.frequencies.map((item) => item.percent)));
 const vigenereOutput = computed(() => manualKey.value ? (() => { try { return runCipher(input.value, { kind: 'vigenere', key: manualKey.value }, 'decrypt').output; } catch { return ''; } })() : '');
+function frequencyBarHeight(percent: number): number {
+  if (maximumFrequency.value <= 0) return 2;
+  return Math.max(2, Math.round((percent / maximumFrequency.value) * 92));
+}
 function analyze() {
   error.value = ''; candidates.value = [];
   if (!input.value) { error.value = 'Enter ciphertext to analyze.'; return; }
@@ -37,7 +42,7 @@ function useCandidate(candidate: AnalysisCandidate) { workspace.setInput(candida
     <section v-if="tool === 'overview'" class="grid-2 result-section">
       <div class="terminal-panel"><span class="kicker">Cautious heuristic / {{ family.confidence }}</span><h2>{{ family.label }}</h2><p class="lead">{{ family.rationale }}</p><p class="notice">This is a pattern-based suggestion, not a definitive cipher identification.</p></div>
       <div class="terminal-panel"><div class="panel-header"><div><span class="kicker">Repeated sequences</span><h2>N-gram summary</h2></div></div><div v-if="stats.ngrams.length" class="ngram-list"><span v-for="gram in stats.ngrams" :key="gram.value"><strong>{{ gram.value }}</strong> ×{{ gram.count }}</span></div><p v-else class="lead">No repeated bigrams or trigrams in this sample.</p></div>
-      <div class="terminal-panel frequency-panel"><div class="panel-header"><div><span class="kicker">A–Z distribution</span><h2>Letter frequency</h2></div></div><div class="frequency-bars"><div v-for="item in stats.frequencies" :key="item.letter" class="frequency-bar"><i :style="{ height: `${Math.max(2, item.percent * 5)}px` }" /><span>{{ item.letter }}</span></div></div></div>
+      <div class="terminal-panel frequency-panel"><div class="panel-header"><div><span class="kicker">A–Z distribution</span><h2>Letter frequency</h2></div></div><div class="frequency-bars"><div v-for="item in stats.frequencies" :key="item.letter" class="frequency-bar" :aria-label="`${item.letter}: ${item.percent.toFixed(1)} percent`" :title="`${item.percent.toFixed(1)}%`"><i :style="{ height: `${frequencyBarHeight(item.percent)}px` }" /><span>{{ item.letter }}</span></div></div></div>
     </section>
 
     <section v-else-if="tool === 'vigenere'" class="grid-2 result-section">

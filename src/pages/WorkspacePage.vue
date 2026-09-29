@@ -8,26 +8,36 @@ import { Share } from '@capacitor/share';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import PageFrame from '@/components/common/PageFrame.vue';
 import { cipherRegistry, cipherById } from '@/services/ciphers/registry';
-import { useWorkspaceStore } from '@/stores/workspace';
+import { snapshotCipherOptions, useWorkspaceStore } from '@/stores/workspace';
 import { useSettingsStore } from '@/stores/settings';
 import { putRecord } from '@/services/storage/database';
 import { notifyHistoryChanged, type HistoryRecord } from '@/models/history';
 const workspace = useWorkspaceStore(); const settings = useSettingsStore(); const router = useRouter();
-const notice = ref(''); const historyDisabled = ref(false); const selected = computed(() => cipherById(workspace.options.kind));
+const notice = ref(''); const historyDisabled = ref(false); const saving = ref(false); const selected = computed(() => cipherById(workspace.options.kind));
 function run() { workspace.process(); if (!workspace.error) void Haptics.impact({ style: ImpactStyle.Light }).catch(() => undefined); }
 async function copy() { await Clipboard.write({ string: workspace.output }); historyDisabled.value = false; notice.value = 'Output copied.'; }
 async function share() { await Share.share({ title: `${selected.value.name} output`, text: workspace.output, dialogTitle: 'Share CipherGrid output' }); }
 async function save() {
   if (!settings.historyEnabled) { historyDisabled.value = true; notice.value = 'History is off. Enable it in Settings before saving.'; return; }
-  const record: HistoryRecord = {
-    id: crypto.randomUUID(), algorithm: selected.value.name, algorithmId: selected.value.id,
-    mode: workspace.mode, input: workspace.input, output: workspace.output,
-    options: structuredClone(workspace.options), createdAt: new Date().toISOString(),
-  };
-  await putRecord('history', record);
-  notifyHistoryChanged();
+  if (saving.value) return;
+  saving.value = true;
   historyDisabled.value = false;
-  notice.value = 'Saved locally.';
+  notice.value = 'Saving locally\u2026';
+  try {
+    const record: HistoryRecord = {
+      id: typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `history-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      algorithm: selected.value.name, algorithmId: selected.value.id,
+      mode: workspace.mode, input: workspace.input, output: workspace.output,
+      options: snapshotCipherOptions(workspace.options), createdAt: new Date().toISOString(),
+    };
+    await putRecord('history', record);
+    notifyHistoryChanged();
+    notice.value = 'Saved locally. It is available in Library.';
+  } catch {
+    notice.value = 'Could not save this result locally. Check device storage and try again.';
+  } finally {
+    saving.value = false;
+  }
 }
 function toQr() { sessionStorage.setItem('cg-qr-text', workspace.output); sessionStorage.setItem('cg-qr-algorithm', workspace.options.kind); void router.push('/qr'); }
 function toAnalyzer() { sessionStorage.setItem('cg-analyze-text', workspace.output); void router.push('/analyze'); }
@@ -68,7 +78,7 @@ function toAnalyzer() { sessionStorage.setItem('cg-analyze-text', workspace.outp
           <pre v-else-if="workspace.output" class="result-output">{{ workspace.output }}</pre>
           <div v-else class="empty-result"><span>00</span><p>Your transformed text and explanation will appear here.</p></div>
           <div v-if="workspace.output" class="result-actions">
-            <button type="button" @click="copy"><IonIcon :icon="copyOutline" />Copy</button><button type="button" @click="save"><IonIcon :icon="saveOutline" />Save</button><button type="button" @click="share"><IonIcon :icon="shareOutline" />Share</button><button type="button" @click="toQr"><IonIcon :icon="qrCodeOutline" />QR</button><button type="button" @click="toAnalyzer"><IonIcon :icon="analyticsOutline" />Analyze</button>
+            <button type="button" @click="copy"><IonIcon :icon="copyOutline" />Copy</button><button type="button" :disabled="saving" @click="save"><IonIcon :icon="saveOutline" />{{ saving ? 'Saving' : 'Save' }}</button><button type="button" @click="share"><IonIcon :icon="shareOutline" />Share</button><button type="button" @click="toQr"><IonIcon :icon="qrCodeOutline" />QR</button><button type="button" @click="toAnalyzer"><IonIcon :icon="analyticsOutline" />Analyze</button>
           </div>
           <p v-if="notice" class="notice" role="status">{{ notice }} <RouterLink v-if="historyDisabled" to="/settings" class="notice-settings">Open Settings</RouterLink></p>
         </div>

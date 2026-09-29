@@ -47,11 +47,11 @@ function choose(id: typeof cipherRegistry[number]['id']) { workspace.select(id);
 
 <style scoped>
 .home-hero { display: grid; gap: 0; border: 1px solid var(--cg-line); background-color: #111925; background-image: linear-gradient(rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.045) 1px, transparent 1px), linear-gradient(180deg, #17233a, #0b111b); background-size: 36px 36px, 36px 36px, 100% 100%; color: #fff; box-shadow: 9px 9px 0 var(--cg-line); overflow: hidden; }
-.hero-copy { position: relative; z-index: 2; display: grid; align-content: center; padding: 28px 22px 34px; }
-.home-hero .kicker { color: #aeb8cc; }.home-hero .lead { color: #cbd3df; }.home-hero h1 { margin: 12px 0 20px; }
+.hero-copy { position: relative; z-index: 2; display: grid; align-content: center; justify-items: center; padding: 28px 22px 34px; text-align: center; }
+.home-hero .kicker { color: #aeb8cc; }.home-hero .lead { margin-right: auto; margin-left: auto; color: #cbd3df; }.home-hero h1 { margin: 12px 0 20px; }
 .home-hero em { color: #ff7442; font-style: normal; text-shadow: 3px 3px 0 rgba(35, 71, 255, .7); }
 .hero-status { justify-self: start; display: inline-flex; align-items: center; gap: 7px; margin-bottom: 30px; padding: 7px 9px; border: 1px solid #42506a; color: #d8dfeb; font: 700 .66rem ui-monospace, monospace; text-transform: uppercase; letter-spacing: .06em; }.hero-status i { width: 8px; height: 8px; background: #43e394; box-shadow: 0 0 12px #43e394; }
-.hero-cta { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 12px; }.hero-learn { color: #fff; background: rgba(255,255,255,.06); border-color: #647087; }
+.hero-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; margin-top: 12px; }.hero-learn { color: #fff; background: rgba(255,255,255,.06); border-color: #647087; }
 .hero-visual { position: relative; min-height: 420px; margin: 0; overflow: hidden; background: #080c12; }.hero-visual::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, rgba(8,12,18,.9), transparent 48%), linear-gradient(90deg, rgba(13,20,31,.25), transparent 40%); }
 .hero-visual img { width: 100%; height: 100%; object-fit: cover; object-position: 58% 58%; filter: saturate(1.06) contrast(1.03); }
 .hero-visual figcaption { position: absolute; z-index: 2; right: 18px; bottom: 18px; left: 18px; display: grid; gap: 5px; color: #fff; }.hero-visual figcaption span { color: #ffb091; font: 700 .64rem ui-monospace, monospace; letter-spacing: .1em; }.hero-visual figcaption strong { font-size: 1.08rem; }
